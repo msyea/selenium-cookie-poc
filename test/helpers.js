@@ -17,7 +17,31 @@ const safeUnlink = async (path) => {
   }
 }
 
+const waitForAssertions = (driver, assertionsFunc) => {
+  const start = new Date();
+  return new Promise((resolve, reject) => {
+    const t = setInterval(async () => {
+      let lastErr
+      try {
+        await assertionsFunc(driver);
+        clearInterval(t);
+        return resolve();
+      } catch (err) {
+        lastErr = err
+      }
+
+      if (new Date() - start > 10000) {
+        clearInterval(t);
+        return reject(`timeout for: ${lastErr}`);
+      }
+
+      return null;
+    }, 100);
+  });
+}
+
 module.exports = {
   fsp,
-  safeUnlink
+  safeUnlink,
+  waitForAssertions
 }

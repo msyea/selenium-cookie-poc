@@ -1,12 +1,15 @@
 const { Builder, By, Key, until } = require('selenium-webdriver')
 const assert = require('assert')
 
-const { fsp, safeUnlink } = require('./helpers')
+const { fsp, safeUnlink, waitForAssertions } = require('./helpers')
 
 const SCREENSHOT_PATH = __dirname + '/screenshot.png'
 
+const COOKIE_MONSTER_HTTP = 'http://cookie_monster:4080'
+const COOKIE_MONSTER_HTTPS = 'https://cookie_monster:4443'
+
 describe('selenium playing well with certificates', function () {
-  this.timeout(10000)
+  this.timeout(15000)
   let driver
   beforeEach(() => (
     driver = new Builder()
@@ -23,10 +26,31 @@ describe('selenium playing well with certificates', function () {
   it ('should take a screenshot of a page', async () => {
     await safeUnlink(SCREENSHOT_PATH)
     await driver.get('http://www.google.com/ncr');
-    await driver.findElement(By.name('q')).sendKeys('BALLS', Key.RETURN);
-    await driver.wait(until.titleIs('BALLS - Google Search'), 1000);
+    await driver.findElement(By.name('q')).sendKeys('Christmas', Key.RETURN);
+    await driver.wait(until.titleIs('Christmas - Google Search'), 1000);
     const image = await driver.takeScreenshot()
     await fsp.writeFile(SCREENSHOT_PATH, image, 'base64')
     await fsp.access(SCREENSHOT_PATH) // will throw if no file
+  })
+  it ('should set a cookie', async () => {
+    await driver.get(`${COOKIE_MONSTER_HTTP}/set-cookie?mycookie=myvalue1`)
+    await driver.get(`${COOKIE_MONSTER_HTTP}/get-cookie`)
+    await waitForAssertions(driver, async (driver) => {
+      assert.equal(await driver.executeScript('return document.cookie'), 'mycookie=myvalue1')
+    })
+  })
+  it ('should set a secure cookie', async () => {
+    await driver.get(`${COOKIE_MONSTER_HTTPS}/set-cookie?mycookie=myvalue2`)
+    await driver.get(`${COOKIE_MONSTER_HTTPS}/get-cookie`)
+    await waitForAssertions(driver, async (driver) => {
+      assert.equal(await driver.executeScript('return document.cookie'), 'mycookie=myvalue2')
+    })
+  })
+  it ('should secure cookies should not be accessible over http', async () => {
+    await driver.get(`${COOKIE_MONSTER_HTTPS}/set-cookie?mycookie=myvalue3`)
+    await driver.get(`${COOKIE_MONSTER_HTTP}/get-cookie`)
+    await waitForAssertions(driver, async (driver) => {
+      assert.equal(await driver.executeScript('return document.readyState === "complete" ? document.cookie : null'), '')
+    })
   })
 })
