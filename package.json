@@ -4,11 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "dt": "docker-compose run start_dependencies && docker-compose run tests"
   },
   "author": "Simon Mayes <simon.mayes@bglgroup.co.uk>",
   "license": "UNLICENSED",
   "dependencies": {
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "selenium-webdriver": "^4.0.0-alpha.1"
   }
 }
