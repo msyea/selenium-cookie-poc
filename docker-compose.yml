@@ -14,12 +14,16 @@ services:
     ports:
       - 4080:4080
       - 4443:4443
+    networks:
+      default:
+        aliases:
+          - not_the_cookie_monster
   start_dependencies:
     image: dadarek/wait-for-dependencies
     depends_on:
       - selenium
       - cookie_monster
-    command: selenium:4444 cookie_monster:4080
+    command: selenium:4444 cookie_monster:4080 not_the_cookie_monster:4080
   tests:
     build: .
     volumes:

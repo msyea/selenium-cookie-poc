@@ -8,6 +8,9 @@ const SCREENSHOT_PATH = __dirname + '/screenshot.png'
 const COOKIE_MONSTER_HTTP = 'http://cookie_monster:4080'
 const COOKIE_MONSTER_HTTPS = 'https://cookie_monster:4443'
 
+const NOT_THE_COOKIE_MONSTER_HTTP = 'http://not_the_cookie_monster:4080'
+const NOT_THE_COOKIE_MONSTER_HTTPS = 'https://not_the_cookie_monster:4443'
+
 describe('selenium playing well with certificates', function () {
   this.timeout(15000)
   let driver
@@ -51,6 +54,18 @@ describe('selenium playing well with certificates', function () {
     await driver.get(`${COOKIE_MONSTER_HTTP}/get-cookie`)
     await waitForAssertions(driver, async (driver) => {
       assert.equal(await driver.executeScript('return document.readyState === "complete" ? document.cookie : null'), '')
+    })
+  })
+  it ('should not load info from a mixed protocol page', async () => {
+    await driver.get(`${COOKIE_MONSTER_HTTPS}/mixed-page`)
+    await waitForAssertions(driver, async (driver) => {
+      assert.equal(await driver.executeScript('return document.readyState === "complete" ? typeof output : null'), 'undefined')
+    })
+  })
+  it ('should load info from a mixed protocol page', async () => {
+    await driver.get(`${COOKIE_MONSTER_HTTPS}/not-mixed-page`)
+    await waitForAssertions(driver, async (driver) => {
+      assert.equal(await driver.executeScript('return document.readyState === "complete" ? output : null'), 'Hello world!')
     })
   })
 })

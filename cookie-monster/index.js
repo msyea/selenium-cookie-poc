@@ -9,6 +9,10 @@ const HTTPS_PORT = process.env.HTTPS_PORT || 4443
 
 const cookieParser = require('cookie-parser')
 
+app.use(express.static('public'))
+
+app.set('view engine', 'pug')
+
 app.use(cookieParser())
 
 app.get('/set-cookie', (req, res) => {
@@ -17,6 +21,14 @@ app.get('/set-cookie', (req, res) => {
 })
 app.get('/get-cookie', (req, res) => {
   res.send(req.cookies)
+})
+
+app.get('/mixed-page', (req, res) => {
+  res.render('mixed-page')
+})
+
+app.get('/not-mixed-page', (req, res) => {
+  res.render('not-mixed-page')
 })
 
 app.listen(HTTP_PORT, () => {
